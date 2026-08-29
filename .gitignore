@@ -1,0 +1,16 @@
+# General ignores
+__pycache__/
+*.pyc
+.env
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Docker
+node_modules/
+
+# IDE
+.vscode/
+.idea/
