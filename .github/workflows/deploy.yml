@@ -1,0 +1,130 @@
+name: Build, Scan and Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+
+jobs:
+  build-scan-push:
+    runs-on: ubuntu-latest
+
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image
+        id: image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          IMAGE="$REGISTRY/${{ secrets.ECR_REPOSITORY }}:${GITHUB_SHA}"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Build image
+        run: docker build -t "${{ steps.image.outputs.image }}" ./app
+
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.image.outputs.image }}
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: Push image
+        run: |
+          docker push "${{ steps.image.outputs.image }}"
+
+  deploy-staging:
+    needs: build-scan-push
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to staging through SSM
+        env:
+          INSTANCE_ID: ${{ secrets.STAGING_INSTANCE_ID }}
+          IMAGE: ${{ needs.build-scan-push.outputs.image }}
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters commands="[
+              \"docker login --username AWS --password \$(aws ecr get-login-password --region $AWS_REGION) --password-stdin $(echo $IMAGE | cut -d/ -f1)\",
+              \"docker pull $IMAGE\",
+              \"docker rm -f octabyte-app || true\",
+              \"docker run -d --name octabyte-app --restart unless-stopped -p 8000:8000 $IMAGE\"
+            ]" \
+            --query "Command.CommandId" --output text)
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID"
+
+  integration-test:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Integration test
+        run: |
+          echo "Replace this with the staging ALB URL."
+          echo "Example: curl -f http://STAGING_ALB_DNS/health"
+
+  deploy-production:
+    needs: integration-test
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy production through SSM
+        env:
+          INSTANCE_ID: ${{ secrets.PRODUCTION_INSTANCE_ID }}
+          IMAGE: ${{ needs.build-scan-push.outputs.image }}
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters commands="[
+              \"docker login --username AWS --password \$(aws ecr get-login-password --region $AWS_REGION) --password-stdin $(echo $IMAGE | cut -d/ -f1)\",
+              \"docker pull $IMAGE\",
+              \"docker rm -f octabyte-app || true\",
+              \"docker run -d --name octabyte-app --restart unless-stopped -p 8000:8000 $IMAGE\"
+            ]" \
+            --query "Command.CommandId" --output text)
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID"
