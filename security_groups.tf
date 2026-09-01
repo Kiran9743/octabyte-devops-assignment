@@ -1,4 +1,4 @@
-﻿resource "aws_security_group" "alb" {
+resource "aws_security_group" "alb" {
   name        = "${var.project_name}-${var.environment}-alb"
   description = "ALB security group"
   vpc_id      = aws_vpc.main.id
@@ -99,3 +99,4 @@ resource "aws_security_group" "monitoring" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+ 

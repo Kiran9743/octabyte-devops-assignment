@@ -1,14 +1,53 @@
+<<<<<<< HEAD
+=======
+@"
+>>>>>>> 776a2e6 (Update Terraform deployment configuration)
+# Terraform working directory
 .terraform/
+**/.terraform/
+
+# Terraform state
 *.tfstate
 *.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+
+# Terraform plan files
+*.tfplan
+*.tfplan.*
+
+# Terraform variable files containing secrets
 terraform.tfvars
 *.tfvars
+*.auto.tfvars
+*.auto.tfvars.json
+*.tfvars.json
 !terraform.tfvars.example
+
+# Environment / secrets
 .env
 .env.*
+
+# Python
 __pycache__/
-.pytest_cache/
 *.pyc
-.DS_Store
+.pytest_cache/
+
+# Node / dependencies
+node_modules/
+
+# IDE
 .vscode/
 .idea/
+
+# OS
+<<<<<<< HEAD
+.DS_Store
+=======
+.DS_Store
+
+# GitHub Actions self-hosted runner
+terraform/actions-runner/
+"@ | Set-Content -Encoding utf8 .gitignore
+>>>>>>> 776a2e6 (Update Terraform deployment configuration)
