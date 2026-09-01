@@ -81,3 +81,14 @@ variable "domain_name" {
   default     = ""
   description = "Optional DNS name. Leave empty for ALB DNS testing."
 }
+variable "production_instance_count" {
+  type        = number
+  description = "Number of production application instances"
+  default     = 2
+}
+
+variable "production_instance_type" {
+  type        = string
+  description = "Production EC2 instance type"
+  default     = "t3.micro"
+}

@@ -27,3 +27,14 @@ output "instance_ids" {
 output "instance_private_ips" {
   value = aws_instance.app[*].private_ip
 }
+output "production_alb_dns_name" {
+  value = aws_lb.production_app.dns_name
+}
+
+output "production_instance_ids" {
+  value = aws_instance.production_app[*].id
+}
+
+output "production_instance_private_ips" {
+  value = aws_instance.production_app[*].private_ip
+}

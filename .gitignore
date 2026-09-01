@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+@"
+>>>>>>> 776a2e6 (Update Terraform deployment configuration)
 # Terraform working directory
 .terraform/
 **/.terraform/
@@ -38,4 +42,12 @@ node_modules/
 .idea/
 
 # OS
+<<<<<<< HEAD
 .DS_Store
+=======
+.DS_Store
+
+# GitHub Actions self-hosted runner
+terraform/actions-runner/
+"@ | Set-Content -Encoding utf8 .gitignore
+>>>>>>> 776a2e6 (Update Terraform deployment configuration)
