@@ -1,9 +1,11 @@
 # Terraform working directory
 .terraform/
+**/.terraform/
 
 # Terraform state
 *.tfstate
 *.tfstate.*
+*.tfstate.backup
 crash.log
 crash.*.log
 
@@ -12,40 +14,28 @@ crash.*.log
 *.tfplan.*
 
 # Terraform variable files containing secrets
+terraform.tfvars
+*.tfvars
 *.auto.tfvars
 *.auto.tfvars.json
-
-# Keep the example variables file
+*.tfvars.json
 !terraform.tfvars.example
 
-# Environment/secrets
+# Environment / secrets
 .env
 .env.*
-!.env.example
 
-# AWS credentials
-.aws/
-credentials
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
 
-# Private keys
-*.pem
-*.key
-*.p12
-*.pfx
-
-# Logs
-*.log
+# Node / dependencies
+node_modules/
 
 # IDE
 .vscode/
 .idea/
 
-# OS files
+# OS
 .DS_Store
-Thumbs.db
-
-# Python
-__pycache__/
-*.pyc
-.venv/
-venv/
