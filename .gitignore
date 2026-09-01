@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .terraform/
 *.tfstate
 *.tfstate.*
@@ -10,5 +11,21 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .DS_Store
+=======
+# General ignores
+__pycache__/
+*.pyc
+.env
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Docker
+node_modules/
+
+# IDE
+>>>>>>> c0e89c8408a845a66946caf69f85ee0e69a3f8a3
 .vscode/
 .idea/
