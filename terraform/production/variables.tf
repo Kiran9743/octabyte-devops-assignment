@@ -43,7 +43,7 @@ variable "availability_zones" {
 
 variable "instance_type" {
   type    = string
-  default = "t3.small"
+  default = "t3.micro"
 }
 
 variable "instance_count" {
@@ -53,7 +53,7 @@ variable "instance_count" {
 
 variable "rds_instance_class" {
   type    = string
-  default = "db.t4g.small"
+  default = "db.t4g.micro"
 }
 
 variable "db_name" {
@@ -90,5 +90,5 @@ variable "production_instance_count" {
 variable "production_instance_type" {
   type        = string
   description = "Production EC2 instance type"
-  default     = "t3.small"
+  default     = "t3.micro"
 }

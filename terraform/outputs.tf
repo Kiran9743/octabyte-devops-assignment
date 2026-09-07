@@ -38,3 +38,27 @@ output "production_instance_ids" {
 output "production_instance_private_ips" {
   value = aws_instance.production_app[*].private_ip
 }
+output "app_ebs_volume_ids" {
+  description = "EBS volume IDs attached to application instances"
+  value       = aws_ebs_volume.app_data[*].id
+}
+
+output "grafana_instance_id" {
+  description = "Grafana EC2 instance ID"
+  value       = aws_instance.grafana.id
+}
+
+output "grafana_public_ip" {
+  description = "Grafana public IP address"
+  value       = aws_instance.grafana.public_ip
+}
+
+output "grafana_public_dns" {
+  description = "Grafana public DNS name"
+  value       = aws_instance.grafana.public_dns
+}
+
+output "grafana_url" {
+  description = "Grafana web UI URL"
+  value       = "http://${aws_instance.grafana.public_ip}:3000"
+}

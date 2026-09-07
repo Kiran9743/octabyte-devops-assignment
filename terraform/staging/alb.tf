@@ -1,5 +1,5 @@
 resource "aws_lb" "app" {
-  name                       = "${var.project_name}-${var.environment}"
+  name                       = "${var.project_name}-${var.environment}-v2"
   internal                   = false
   load_balancer_type         = "application"
   security_groups            = [aws_security_group.alb.id]
@@ -8,7 +8,7 @@ resource "aws_lb" "app" {
 }
 
 resource "aws_lb_target_group" "app" {
-  name     = "${var.project_name}-${var.environment}"
+  name     = "${var.project_name}-${var.environment}-v2"
   port     = var.app_port
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
@@ -31,12 +31,7 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type = "redirect"
-
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
   }
 }

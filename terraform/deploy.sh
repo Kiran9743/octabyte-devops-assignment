@@ -32,3 +32,4 @@ docker run -d \
   -e DB_PASSWORD="$DB_PASSWORD" \
   -e APP_ENV="staging" \
   "$IMAGE"
+

@@ -63,7 +63,7 @@ resource "aws_iam_role_policy" "github_actions" {
         ]
         Resource = aws_ecr_repository.app.arn
       },
-            {
+      {
         Effect = "Allow"
         Action = [
           "ssm:SendCommand",
