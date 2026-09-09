@@ -43,7 +43,7 @@ variable "availability_zones" {
 
 variable "instance_type" {
   type    = string
-  default = "t3.micro"
+  default = "t3.small"
 }
 
 variable "instance_count" {
@@ -90,5 +90,35 @@ variable "production_instance_count" {
 variable "production_instance_type" {
   type        = string
   description = "Production EC2 instance type"
-  default     = "t3.micro"
+  default     = "t3.small"
+}
+
+variable "eks_cluster_version" {
+  type        = string
+  description = "EKS Kubernetes version"
+  default     = "1.34"
+}
+
+variable "eks_node_instance_type" {
+  type        = string
+  description = "EKS managed node instance type"
+  default     = "t3.small"
+}
+
+variable "eks_desired_nodes" {
+  type        = number
+  description = "Desired number of EKS nodes"
+  default     = 2
+}
+
+variable "eks_min_nodes" {
+  type        = number
+  description = "Minimum number of EKS nodes"
+  default     = 2
+}
+
+variable "eks_max_nodes" {
+  type        = number
+  description = "Maximum number of EKS nodes"
+  default     = 3
 }

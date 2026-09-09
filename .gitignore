@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-=======
-@"
->>>>>>> 776a2e6 (Update Terraform deployment configuration)
-# Terraform working directory
+﻿# Terraform working directory
 .terraform/
 **/.terraform/
 
@@ -25,9 +21,17 @@ terraform.tfvars
 *.tfvars.json
 !terraform.tfvars.example
 
+# Terraform backup files
+*.bak
+*.backup
+
 # Environment / secrets
 .env
 .env.*
+*.pem
+*.key
+credentials.json
+secrets.json
 
 # Python
 __pycache__/
@@ -42,12 +46,16 @@ node_modules/
 .idea/
 
 # OS
-<<<<<<< HEAD
 .DS_Store
-=======
-.DS_Store
+Thumbs.db
 
-# GitHub Actions self-hosted runner
+# Jenkins / GitHub Actions self-hosted runner
 terraform/actions-runner/
-"@ | Set-Content -Encoding utf8 .gitignore
->>>>>>> 776a2e6 (Update Terraform deployment configuration)
+
+# Generated Prometheus configuration/output
+terraform/staging/k8s/prometheus.yaml
+terraform/staging/k8s/prometheus.yaml.gz
+terraform/staging/k8s/active.json
+terraform/staging/k8s/dropped.json
+terraform/staging/k8s/prom-config.json
+terraform/staging/k8s/targets.json
