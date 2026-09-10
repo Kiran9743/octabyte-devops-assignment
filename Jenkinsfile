@@ -1,4 +1,3 @@
-```groovy
 pipeline {
     agent any
 
@@ -9,10 +8,6 @@ pipeline {
 
         AWS_ACCOUNT_ID = '507941514830'
         ECR_REPOSITORY = 'octabyte/staging/app'
-
-        IMAGE_NAME = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}"
-        IMAGE_TAG  = "${env.GIT_COMMIT}"
-        IMAGE_URI  = "${IMAGE_NAME}:${env.GIT_COMMIT}"
 
         DEPLOYMENT_NAME = 'octa-app'
         CONTAINER_NAME  = 'octa-app'
@@ -32,8 +27,9 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
-                    env.IMAGE_TAG = env.GIT_COMMIT
-                    env.IMAGE_URI = "${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                    env.IMAGE_NAME = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPOSITORY}"
+                    env.IMAGE_TAG  = env.GIT_COMMIT
+                    env.IMAGE_URI  = "${env.IMAGE_NAME}:${env.IMAGE_TAG}"
 
                     echo "Git commit: ${env.GIT_COMMIT}"
                     echo "Docker image: ${env.IMAGE_URI}"
@@ -50,7 +46,6 @@ pipeline {
                     test -f app/Dockerfile
                     test -f app/requirements.txt
 
-                    python3 --version || true
                     docker --version
                 '''
             }
@@ -68,6 +63,9 @@ pipeline {
                       ./app
 
                     docker image inspect "${IMAGE_URI}" > /dev/null
+
+                    echo "Docker image built successfully."
+                    echo "Image: ${IMAGE_URI}"
                 '''
             }
         }
@@ -114,13 +112,14 @@ pipeline {
 
                     docker run --rm \
                       -v /var/run/docker.sock:/var/run/docker.sock \
-                      -v "${WORKSPACE}:/workspace:ro" \
                       aquasec/trivy:latest \
                       image \
                       --severity HIGH,CRITICAL \
                       --ignore-unfixed \
                       --exit-code 1 \
                       "${IMAGE_URI}"
+
+                    echo "Trivy security scan passed."
                 '''
             }
         }
@@ -159,6 +158,9 @@ pipeline {
 
                         docker push "${IMAGE_URI}"
 
+                        echo "Image pushed successfully."
+                        echo "Image: ${IMAGE_URI}"
+
                     fi
                 '''
             }
@@ -178,7 +180,10 @@ pipeline {
 
                     kubectl \
                       --kubeconfig "${KUBECONFIG_PATH}" \
-                      get namespace "${K8S_NAMESPACE}"
+                      -n "${K8S_NAMESPACE}" \
+                      get deployment "${DEPLOYMENT_NAME}"
+
+                    echo "Jenkins EKS access verified."
                 '''
             }
         }
@@ -200,6 +205,8 @@ pipeline {
                       annotate deployment/"${DEPLOYMENT_NAME}" \
                       kubernetes.io/change-cause="Jenkins deployment ${BUILD_NUMBER} - ${GIT_COMMIT}" \
                       --overwrite
+
+                    echo "Deployment image updated successfully."
                 '''
             }
         }
@@ -279,4 +286,3 @@ pipeline {
         }
     }
 }
-```
