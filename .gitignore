@@ -1,14 +1,61 @@
+﻿# Terraform working directory
 .terraform/
+**/.terraform/
+
+# Terraform state
 *.tfstate
 *.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+
+# Terraform plan files
+*.tfplan
+*.tfplan.*
+
+# Terraform variable files containing secrets
 terraform.tfvars
 *.tfvars
+*.auto.tfvars
+*.auto.tfvars.json
+*.tfvars.json
 !terraform.tfvars.example
+
+# Terraform backup files
+*.bak
+*.backup
+
+# Environment / secrets
 .env
 .env.*
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Python
 __pycache__/
-.pytest_cache/
 *.pyc
-.DS_Store
+.pytest_cache/
+
+# Node / dependencies
+node_modules/
+
+# IDE
 .vscode/
 .idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jenkins / GitHub Actions self-hosted runner
+terraform/actions-runner/
+
+# Generated Prometheus configuration/output
+terraform/staging/k8s/prometheus.yaml
+terraform/staging/k8s/prometheus.yaml.gz
+terraform/staging/k8s/active.json
+terraform/staging/k8s/dropped.json
+terraform/staging/k8s/prom-config.json
+terraform/staging/k8s/targets.json

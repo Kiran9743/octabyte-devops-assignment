@@ -1,0 +1,106 @@
+```bash
+#!/bin/bash
+set -euxo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update
+apt-get install -y docker.io awscli jq curl unzip
+
+systemctl enable docker
+systemctl start docker
+
+mkdir -p /opt/octabyte
+
+cat > /opt/octabyte/deploy.sh <<'SCRIPT'
+#!/bin/bash
+set -euo pipefail
+
+REGION="${aws_region}"
+ECR_REPOSITORY="${ecr_repository}"
+SECRET_ARN="${secret_arn}"
+APP_PORT="${app_port}"
+
+aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REPOSITORY"
+
+SECRET_JSON="$(aws secretsmanager get-secret-value \
+  --secret-id "$SECRET_ARN" \
+  --region "$REGION" \
+  --query SecretString \
+  --output text)"
+
+DB_HOST="$(echo "$SECRET_JSON" | jq -r '.DB_HOST')"
+DB_PORT="$(echo "$SECRET_JSON" | jq -r '.DB_PORT')"
+DB_NAME="$(echo "$SECRET_JSON" | jq -r '.DB_NAME')"
+DB_USERNAME="$(echo "$SECRET_JSON" | jq -r '.DB_USERNAME')"
+DB_PASSWORD="$(echo "$SECRET_JSON" | jq -r '.DB_PASSWORD')"
+
+IMAGE="$${ECR_REPOSITORY}:latest"
+
+docker pull "$IMAGE" || true
+docker rm -f octabyte-app 2>/dev/null || true
+
+docker run -d \
+  --name octabyte-app \
+  --restart unless-stopped \
+  -p "$${APP_PORT}:$${APP_PORT}" \
+  -e DB_HOST="$${DB_HOST}" \
+  -e DB_PORT="$${DB_PORT}" \
+  -e DB_NAME="$${DB_NAME}" \
+  -e DB_USERNAME="$${DB_USERNAME}" \
+  -e DB_PASSWORD="$${DB_PASSWORD}" \
+  -e APP_ENV="${environment}" \
+  "$IMAGE"
+SCRIPT
+
+chmod +x /opt/octabyte/deploy.sh
+
+# Install SSM agent if not already present.
+snap install amazon-ssm-agent --classic || true
+systemctl enable snap.amazon-ssm-agent.amazon-ssm-agent.service || true
+systemctl restart snap.amazon-ssm-agent.amazon-ssm-agent.service || true
+
+# CloudWatch Agent configuration.
+mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
+
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'CW'
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/syslog",
+            "log_group_name": "/octabyte/system",
+            "log_stream_name": "{instance_id}"
+          },
+          {
+            "file_path": "/var/log/cloud-init-output.log",
+            "log_group_name": "/octabyte/system",
+            "log_stream_name": "{instance_id}"
+          }
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "metrics_collected": {
+      "disk": {
+        "measurement": ["used_percent"],
+        "resources": ["*"]
+      },
+      "mem": {
+        "measurement": ["mem_used_percent"]
+      }
+    }
+  }
+}
+CW
+
+# First deployment is performed only if an image already exists.
+if aws ecr describe-images \
+  --repository-name "$(basename "$${ECR_REPOSITORY}")" \
+  --region "$${REGION}" >/dev/null 2>&1; then
+  /opt/octabyte/deploy.sh || true
+fi
+```

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Octa Byte AI - DevOps Assignment
 
 A complete reference implementation for the assignment using:
@@ -266,3 +267,6 @@ Example items to document after implementation:
 - RDS must remain private.
 - ALB health checks need a lightweight `/health` endpoint.
 - Deployment to private instances is handled with SSM instead of exposing SSH.
+=======
+# octabyte-devops-assignment
+>>>>>>> c0e89c8408a845a66946caf69f85ee0e69a3f8a3

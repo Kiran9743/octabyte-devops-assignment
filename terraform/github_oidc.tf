@@ -29,7 +29,7 @@ data "aws_iam_policy_document" "github_assume" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:YOUR_GITHUB_ORG/YOUR_REPO:ref:refs/heads/main"]
+      values   = ["repo:Kiran9743/octabyte-devops-assignment:ref:refs/heads/main"]
     }
   }
 }
@@ -63,11 +63,18 @@ resource "aws_iam_role_policy" "github_actions" {
         ]
         Resource = aws_ecr_repository.app.arn
       },
-      {
+            {
         Effect = "Allow"
         Action = [
           "ssm:SendCommand",
           "ssm:GetCommandInvocation"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:DescribeLoadBalancers"
         ]
         Resource = "*"
       }

@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: octa-app-monitor
+  namespace: staging
+  labels:
+    release: prometheus
+    app: octa-app
+spec:
+  namespaceSelector:
+    matchNames:
+      - staging
+
+  selector:
+    matchLabels:
+      app: octa-app
+
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
