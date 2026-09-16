@@ -1,0 +1,43 @@
+prometheus:
+  url: http://prometheus-kube-prometheus-prometheus.monitoring.svc
+  port: 9090
+
+metricsRelistInterval: 30s
+metricsMaxAge: 1m
+
+rules:
+  default: false
+
+  custom:
+    # Application request rate
+    - seriesQuery: 'http_requests_total{namespace!="",pod!=""}'
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        matches: "^http_requests_total$"
+        as: "http_requests_per_second"
+      metricsQuery: |
+        sum(
+          rate(http_requests_total{
+            namespace="<<.LabelMatchers>>",
+            pod=~"<<.LabelMatchers>>"
+          }[2m])
+        ) by (<<.GroupBy>>)
+
+    # Generic application metrics exposed by octa-app
+    - seriesQuery: '{namespace="staging",pod!="",__name__=~"octa_app_.*"}'
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        matches: "^(.*)$"
+        as: "$1"
+      metricsQuery: |
+        sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)
